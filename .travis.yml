@@ -4,6 +4,9 @@ rust:
   - beta
 before_script:
   - rustup component add clippy
+  - rustup component add rustfmt
 script:
   - cargo clippy -- -D warnings
+  - cargo fmt --all -- --check
+  - cargo build
   - cargo test
