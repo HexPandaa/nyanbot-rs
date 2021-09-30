@@ -1,3 +1,5 @@
+mod xkcd;
+
 use serenity::async_trait;
 use serenity::client::{Client, Context, EventHandler};
 use serenity::framework::standard::{
