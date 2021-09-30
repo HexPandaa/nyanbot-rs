@@ -1,9 +1,10 @@
 use chrono::prelude::*;
+use std::fmt::Formatter;
 
 // type Result<T> = std::result::Result<T, XkcdError>;
 
 #[derive(Debug, Clone)]
-enum XkcdError {
+pub enum XkcdError {
     DownloadError,
     JsonError,
 }
@@ -22,7 +23,7 @@ impl std::fmt::Display for XkcdError {
 }
 
 /// The representation of a comic
-struct Comic {
+pub struct Comic {
     title: String,
     safe_title: String,
     num: u32,
@@ -101,17 +102,17 @@ mod utils {
     }
 
     fn download_url(url: String) -> Result<JsonData, XkcdError> {
-        let data = match attohttpc::get(url).send() {
-            Ok(data) => data,
-            Err(_) => return Err(XkcdError::DownloadError),
-        };
+        let data = attohttpc::get(url)
+            .send()
+            .map_err(|_| XkcdError::DownloadError)?;
 
         if data.is_success() {
             //TODO: fix this
-            let json: JsonData = match data.json<JsonData>() {
-                Ok(json) => return Ok(json),
+            let json: JsonData = match data.json() {
+                Ok(json) => json,
                 Err(_) => return Err(XkcdError::JsonError),
             };
+            Ok(json)
         } else {
             Err(XkcdError::DownloadError)
         }
