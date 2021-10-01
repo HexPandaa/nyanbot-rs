@@ -6,7 +6,7 @@ use serenity::framework::standard::{
     macros::{command, group},
     Args, CommandResult, StandardFramework,
 };
-use serenity::model::channel::Message;
+use serenity::model::{channel::Message, gateway::Ready};
 
 use std::env;
 
@@ -21,7 +21,11 @@ struct Fun;
 struct Handler;
 
 #[async_trait]
-impl EventHandler for Handler {}
+impl EventHandler for Handler {
+    async fn ready(&self, _: Context, ready: Ready) {
+        println!("Connected as {}", ready.user.name);
+    }
+}
 
 #[tokio::main]
 async fn main() {
