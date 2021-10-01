@@ -1,7 +1,7 @@
 mod xkcd;
 
 use serenity::async_trait;
-use serenity::client::{Client, Context, EventHandler};
+use serenity::client::{validate_token, Client, Context, EventHandler};
 use serenity::framework::standard::{
     macros::{command, group},
     CommandResult, StandardFramework,
