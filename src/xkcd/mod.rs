@@ -37,23 +37,18 @@ pub struct Comic {
 impl Comic {
     /// Returns the comic of the given number
     pub fn from_num(num: u32) -> Option<Comic> {
-        let res = utils::download_num(num);
-        match res {
-            Ok(json) => {
-                let date = utils::parse_date(json.day, json.month, json.year);
-                Some(Comic {
-                    title: json.title,
-                    safe_title: json.safe_title,
-                    num: json.num,
-                    date,
-                    img_url: json.img,
-                    alt: json.alt,
-                    transcript: json.transcript,
-                    news: json.news,
-                })
-            }
-            Err(_) => None,
-        }
+        let json = utils::download_num(num).ok()?;
+        let date = utils::parse_date(json.day, json.month, json.year);
+        Some(Comic {
+            title: json.title,
+            safe_title: json.safe_title,
+            num: json.num,
+            date,
+            img_url: json.img,
+            alt: json.alt,
+            transcript: json.transcript,
+            news: json.news,
+        })
     }
 
     // /// Returns the comic from the current
