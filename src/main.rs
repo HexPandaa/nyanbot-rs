@@ -29,8 +29,14 @@ async fn main() {
         .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
         .group(&GENERAL_GROUP);
 
+    // Load environment variables from ./.env
+    dotenv::dotenv().expect("Could not load .env file");
     // Login with a bot token from the environment
     let token = env::var("DISCORD_TOKEN").expect("token");
+    if validate_token(token.clone()).is_err() {
+        panic!("Invalid format for bot token: {}", token)
+    }
+
     let mut client = Client::builder(token)
         .event_handler(Handler)
         .framework(framework)
