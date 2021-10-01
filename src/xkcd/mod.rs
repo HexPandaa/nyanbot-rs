@@ -38,32 +38,26 @@ impl Comic {
     /// Returns the comic of the given number
     pub fn from_num(num: u32) -> Option<Comic> {
         let json = utils::download_num(num).ok()?;
-        let date = utils::parse_date(json.day, json.month, json.year);
-        Some(Comic {
-            title: json.title,
-            safe_title: json.safe_title,
-            num: json.num,
-            date,
-            img_url: json.img,
-            alt: json.alt,
-            transcript: json.transcript,
-            news: json.news,
-        })
+        Some(utils::json_to_comic(json))
     }
 
-    // /// Returns the comic from the current
-    // pub fn current() -> Option<Comic> {}
+    /// Returns the current comic
+    pub fn current() -> Option<Comic> {
+        let json = utils::download_current().ok()?;
+        Some(utils::json_to_comic(json))
+    }
 }
 
 mod utils {
     use super::XkcdError;
+    use crate::xkcd::Comic;
     use chrono::{Date, TimeZone, Utc};
     use serde::Deserialize;
 
     const BASE_URL: &str = "https://xkcd.com";
 
     /// Returns a chrono::Date object from the day, month and year.
-    pub(crate) fn parse_date(day: String, month: String, year: String) -> Date<Utc> {
+    fn parse_date(day: String, month: String, year: String) -> Date<Utc> {
         let uday: u32 = day.parse().unwrap();
         let umonth: u32 = month.parse().unwrap();
         let iyear: i32 = year.parse().unwrap();
@@ -94,6 +88,20 @@ mod utils {
     pub(crate) fn download_current() -> Result<JsonData, XkcdError> {
         let url: String = format!("{}/info.0.json", BASE_URL);
         download_url(url)
+    }
+
+    pub(crate) fn json_to_comic(json: JsonData) -> Comic {
+        let date = parse_date(json.day, json.month, json.year);
+        Comic {
+            title: json.title,
+            safe_title: json.safe_title,
+            num: json.num,
+            date,
+            img_url: json.img,
+            alt: json.alt,
+            transcript: json.transcript,
+            news: json.news,
+        }
     }
 
     fn download_url(url: String) -> Result<JsonData, XkcdError> {
