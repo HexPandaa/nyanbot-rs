@@ -4,7 +4,7 @@ use serenity::async_trait;
 use serenity::client::{validate_token, Client, Context, EventHandler};
 use serenity::framework::standard::{
     macros::{command, group},
-    CommandResult, StandardFramework,
+    Args, CommandResult, StandardFramework,
 };
 use serenity::model::channel::Message;
 
@@ -58,12 +58,12 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn xkcd(ctx: &Context, msg: &Message) -> CommandResult {
-    println!("Command xkcd called");
-
-    msg.reply(ctx, "Searching...").await?;
-
-    match xkcd::Comic::from_num(613) {
+async fn xkcd(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let comic = match args.single::<u32>() {
+        Ok(num) => xkcd::Comic::from_num(num),
+        Err(_) => xkcd::Comic::current(),
+    };
+    match comic {
         Some(comic) => {
             msg.reply(ctx, comic.img_url).await?;
         }
@@ -71,5 +71,6 @@ async fn xkcd(ctx: &Context, msg: &Message) -> CommandResult {
             msg.reply(ctx, "Comic not found.").await?;
         }
     }
+
     Ok(())
 }
