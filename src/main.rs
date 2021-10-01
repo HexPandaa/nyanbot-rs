@@ -14,6 +14,10 @@ use std::env;
 #[commands(ping)]
 struct General;
 
+#[group]
+#[commands(xkcd)]
+struct Fun;
+
 struct Handler;
 
 #[async_trait]
@@ -43,5 +47,18 @@ async fn main() {
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     msg.reply(ctx, "Pong!").await?;
 
+    Ok(())
+}
+
+#[command]
+async fn xkcd(ctx: &Context, msg: &Message) -> CommandResult {
+    match xkcd::Comic::from_num(613) {
+        Some(comic) => {
+            msg.reply(ctx, comic.img_url).await?;
+        }
+        None => {
+            msg.reply(ctx, "Comic not found.").await?;
+        }
+    }
     Ok(())
 }
