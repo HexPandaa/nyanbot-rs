@@ -27,7 +27,8 @@ impl EventHandler for Handler {}
 async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
-        .group(&GENERAL_GROUP);
+        .group(&GENERAL_GROUP)
+        .group(&FUN_GROUP);
 
     // Load environment variables from ./.env
     dotenv::dotenv().expect("Could not load .env file");
@@ -58,6 +59,10 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn xkcd(ctx: &Context, msg: &Message) -> CommandResult {
+    println!("Command xkcd called");
+
+    msg.reply(ctx, "Searching...").await?;
+
     match xkcd::Comic::from_num(613) {
         Some(comic) => {
             msg.reply(ctx, comic.img_url).await?;
