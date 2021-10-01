@@ -24,14 +24,14 @@ impl std::fmt::Display for XkcdError {
 
 /// The representation of a comic
 pub struct Comic {
-    title: String,
-    safe_title: String,
-    num: u32,
-    date: Date<Utc>,
-    img_url: String,
-    alt: String,
-    transcript: String,
-    news: String,
+    pub title: String,
+    pub safe_title: String,
+    pub num: u32,
+    pub date: Date<Utc>,
+    pub img_url: String,
+    pub alt: String,
+    pub transcript: String,
+    pub news: String,
 }
 
 impl Comic {
