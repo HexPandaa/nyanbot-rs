@@ -4,31 +4,23 @@ use std::env;
 
 use serenity::{
     async_trait,
+    client::{validate_token, Client, Context, EventHandler},
+    framework::standard::{
+        macros::{command, group},
+        Args, CommandResult, StandardFramework,
+    },
     model::{
         channel::Message,
         gateway::Ready,
         interactions::{
             application_command::{
-                ApplicationCommand,
-                ApplicationCommandInteractionDataOptionValue,
-                ApplicationCommandOptionType
+                ApplicationCommand, ApplicationCommandInteractionDataOptionValue,
+                ApplicationCommandOptionType,
             },
-            Interaction,
-            InteractionResponseType
-        }
-    },
-    client::{
-        validate_token,
-        Client,
-        Context,
-        EventHandler
-    },
-    framework::standard::{
-        macros::{command, group},
-        Args, CommandResult, StandardFramework,
+            Interaction, InteractionResponseType,
+        },
     },
 };
-
 
 #[group]
 #[commands(ping)]
@@ -51,16 +43,19 @@ impl EventHandler for Handler {
                     command.name("ping").description("Is the bot alive?")
                 })
                 .create_application_command(|command| {
-                    command.name("xkcd").description("Returns a comic from xkcd").create_option(|option| {
-                        option
-                            .name("number")
-                            .description("The number of the comic")
-                            .kind(ApplicationCommandOptionType::Integer)
-                            .required(false)
-                    })
+                    command
+                        .name("xkcd")
+                        .description("Returns a comic from xkcd")
+                        .create_option(|option| {
+                            option
+                                .name("number")
+                                .description("The number of the comic")
+                                .kind(ApplicationCommandOptionType::Integer)
+                                .required(false)
+                        })
                 })
         })
-            .await;
+        .await;
 
         println!("Added the following global slash commands: {:#?}", commands);
     }
@@ -69,10 +64,7 @@ impl EventHandler for Handler {
             let content = match command.data.name.as_str() {
                 "ping" => "Pong!".to_string(),
                 "xkcd" => {
-                    let options = command
-                        .data
-                        .options
-                        .get(0);
+                    let options = command.data.options.get(0);
 
                     let num = options
                         .and_then(|o| o.resolved.as_ref())
@@ -81,7 +73,8 @@ impl EventHandler for Handler {
                                 Some(n)
                             } else {
                                 None
-                            }})
+                            }
+                        })
                         .map(|i| *i as u32);
 
                     let comic = match num {
@@ -90,8 +83,8 @@ impl EventHandler for Handler {
                     };
 
                     comic.map_or("Comic not found".to_string(), |c| c.img_url)
-                },
-                _ => "Not implemented :(".to_string()
+                }
+                _ => "Not implemented :(".to_string(),
             };
 
             if let Err(why) = command
