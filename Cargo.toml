@@ -15,7 +15,7 @@ dotenv = "0.15"
 [dependencies.serenity]
 version = "0.10"
 default-features = false
-features = ["framework", "standard_framework", "client", "gateway", "rustls_backend", "model"]
+features = ["framework", "standard_framework", "client", "gateway", "rustls_backend", "model", "unstable_discord_api"]
 
 [dependencies.tokio]
 version = "1.0"

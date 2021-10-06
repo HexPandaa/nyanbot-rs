@@ -1,14 +1,34 @@
 mod xkcd;
 
-use serenity::async_trait;
-use serenity::client::{validate_token, Client, Context, EventHandler};
-use serenity::framework::standard::{
-    macros::{command, group},
-    Args, CommandResult, StandardFramework,
-};
-use serenity::model::{channel::Message, gateway::Ready};
-
 use std::env;
+
+use serenity::{
+    async_trait,
+    model::{
+        channel::Message,
+        gateway::Ready,
+        interactions::{
+            application_command::{
+                ApplicationCommand,
+                ApplicationCommandInteractionDataOptionValue,
+                ApplicationCommandOptionType
+            },
+            Interaction,
+            InteractionResponseType
+        }
+    },
+    client::{
+        validate_token,
+        Client,
+        Context,
+        EventHandler
+    },
+    framework::standard::{
+        macros::{command, group},
+        Args, CommandResult, StandardFramework,
+    },
+};
+
 
 #[group]
 #[commands(ping)]
@@ -22,8 +42,69 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
+
+        let commands = ApplicationCommand::set_global_application_commands(&ctx.http, |commands| {
+            commands
+                .create_application_command(|command| {
+                    command.name("ping").description("Is the bot alive?")
+                })
+                .create_application_command(|command| {
+                    command.name("xkcd").description("Returns a comic from xkcd").create_option(|option| {
+                        option
+                            .name("number")
+                            .description("The number of the comic")
+                            .kind(ApplicationCommandOptionType::Integer)
+                            .required(false)
+                    })
+                })
+        })
+            .await;
+
+        println!("Added the following global slash commands: {:#?}", commands);
+    }
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::ApplicationCommand(command) = interaction {
+            let content = match command.data.name.as_str() {
+                "ping" => "Pong!".to_string(),
+                "xkcd" => {
+                    let options = command
+                        .data
+                        .options
+                        .get(0);
+
+                    let num = options
+                        .and_then(|o| o.resolved.as_ref())
+                        .and_then(|v| {
+                            if let ApplicationCommandInteractionDataOptionValue::Integer(n) = v {
+                                Some(n)
+                            } else {
+                                None
+                            }})
+                        .map(|i| *i as u32);
+
+                    let comic = match num {
+                        Some(num) => xkcd::Comic::from_num(num),
+                        None => xkcd::Comic::current(),
+                    };
+
+                    comic.map_or("Comic not found".to_string(), |c| c.img_url)
+                },
+                _ => "Not implemented :(".to_string()
+            };
+
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.content(content))
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        }
     }
 }
 
@@ -42,9 +123,15 @@ async fn main() {
         panic!("Invalid format for bot token: {}", token)
     }
 
+    let application_id: u64 = env::var("APPLICATION_ID")
+        .expect("Missing application id in the environment")
+        .parse()
+        .expect("The application id is not a valid id");
+
     let mut client = Client::builder(token)
         .event_handler(Handler)
         .framework(framework)
+        .application_id(application_id)
         .await
         .expect("Error creating client");
 
