@@ -82,7 +82,32 @@ impl EventHandler for Handler {
                         None => xkcd::Comic::current(),
                     };
 
-                    comic.map_or("Comic not found".to_string(), |c| c.img_url)
+                    match comic {
+                        Some (comic) => {
+                            let embed = command.create_interaction_response(&ctx.http, |response| {
+                                response.kind(InteractionResponseType::ChannelMessageWithSource)
+                                    .interaction_response_data(|message| message.create_embed(|e| {
+                                        e.image(comic.img_url.to_string());
+                                        e.title(format!("xkcd n°{}", comic.num));
+                                        e.field("Title", comic.title.to_string(), false);
+                                        e.field("Alt", comic.alt.to_string(), false);
+                                        e.footer(|f| {
+                                            f.text(format!("From {}", comic.date.format("%d/%m/%Y")));
+                                            f
+                                        });
+                                        e
+                                    }))
+                            })
+                                .await;
+
+                            if let Err(why) = embed {
+                                eprintln!("Error sending slash command embed response {:?}", why);
+                            }
+                            return;
+                        },
+                        None => "Comic not found".to_string()
+                    }
+
                 }
                 _ => "Not implemented :(".to_string(),
             };
@@ -149,7 +174,28 @@ async fn xkcd(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
     match comic {
         Some(comic) => {
-            msg.reply(ctx, comic.img_url).await?;
+            // msg.reply(ctx, comic.img_url).await?;
+            let embed = msg.channel_id
+                .send_message(&ctx.http, |m| {
+                    m.embed(|e| {
+                        e.image(comic.img_url.to_string());
+                        e.title(format!("xkcd n°{}", comic.num));
+                        e.field("Title", comic.title.to_string(), true);
+                        e.field("Alt", comic.alt.to_string(), true);
+                        // e.field("Date", comic.date.format("%d/%m/%Y"), false);
+                        // e.timestamp(comic.date);
+                        e.footer(|f| {
+                            f.text(format!("From {}", comic.date.format("%d/%m/%Y")));
+                            f
+                        });
+                        e
+                    })
+                })
+                .await;
+
+            if let Err(why) = embed {
+                eprintln!("Error sending message {:?}", why);
+            }
         }
         None => {
             msg.reply(ctx, "Comic not found.").await?;
