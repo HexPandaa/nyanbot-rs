@@ -102,7 +102,7 @@ mod utils {
             alt: json.alt,
             transcript: json.transcript,
             news: json.news,
-            link: format!("{}/{}/", BASE_URL, json.num),
+            link: if json.link.is_empty() { format!("{}/{}/", BASE_URL, json.num) } else { json.link },
         }
     }
 
