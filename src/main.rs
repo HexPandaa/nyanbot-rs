@@ -89,6 +89,7 @@ impl EventHandler for Handler {
                                     .interaction_response_data(|message| message.create_embed(|e| {
                                         e.image(comic.img_url.to_string());
                                         e.title(format!("xkcd n°{}", comic.num));
+                                        e.url(comic.link);
                                         e.field("Title", comic.title.to_string(), false);
                                         e.field("Alt", comic.alt.to_string(), false);
                                         e.footer(|f| {
@@ -180,6 +181,7 @@ async fn xkcd(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     m.embed(|e| {
                         e.image(comic.img_url.to_string());
                         e.title(format!("xkcd n°{}", comic.num));
+                        e.url(comic.link);
                         e.field("Title", comic.title.to_string(), true);
                         e.field("Alt", comic.alt.to_string(), true);
                         // e.field("Date", comic.date.format("%d/%m/%Y"), false);

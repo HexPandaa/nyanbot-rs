@@ -32,6 +32,7 @@ pub struct Comic {
     pub alt: String,
     pub transcript: String,
     pub news: String,
+    pub link: String,
 }
 
 impl Comic {
@@ -101,6 +102,7 @@ mod utils {
             alt: json.alt,
             transcript: json.transcript,
             news: json.news,
+            link: format!("{}/{}/", BASE_URL, json.num),
         }
     }
 
